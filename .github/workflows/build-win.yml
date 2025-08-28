@@ -1,0 +1,38 @@
+name: Build Windows Installer
+
+on:
+  workflow_dispatch:   # permite rodar manualmente
+  push:
+    tags:
+      - "v*"          # roda quando você criar uma tag como v0.1.0
+
+jobs:
+  win:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: "npm"
+
+      - name: Install dependencies (clean)
+        shell: pwsh
+        run: |
+          if (Test-Path package-lock.json) { npm ci } else { npm install }
+
+      - name: Build renderer + electron + installer
+        run: npm run dist
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: power-dialer-windows
+          path: |
+            release/**/*.exe
+            release/**/*.zip
+            release/**/*.7z.github/workflows/build-win.yml
